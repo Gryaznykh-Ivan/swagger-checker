@@ -8,8 +8,8 @@
 
     ace.Range = ace.acequire("ace/range").Range;
 
-    let mCode = "# MASTER FILE";
-    let sCode = "# SECOND FILE";
+    let mCode = "";
+    let sCode = "";
 
     let mEditor: Editor;
     let sEditor: Editor;
@@ -34,6 +34,59 @@
         sMarkers.forEach(marker => sEditor.getSession().removeMarker(marker));
     }
 
+    const isPathExist = (LinesArray: Array<string>, path: string): number => {
+        let result = -1;
+
+        const tree = path.split(".");
+        let index = 0;
+        for (let key of tree) {
+            let control = false;
+            
+            let space = result !== -1 ? LinesArray[result === -1 ? 0 : result].match(/  /g)?.length || 0 : -1;
+            if (isNaN(+key) === true || tree[index - 1] === "responses") {
+                for (let i = result === -1 ? 0 : result + 1; i < LinesArray.length; i++) {
+
+                    if (LinesArray[i].indexOf(key + ":") !== -1) {
+                        result = i;
+                        break;
+                    }
+
+                    const newSpace = LinesArray[i].match(/  /g)?.length || 0;
+                    if (newSpace <= space) {
+                        control = true;
+                        break;
+                    }
+
+                }
+            } else {
+                const number = +key + 1;
+                for (let i = result === -1 ? 0 : result + 1, j = 0; i < LinesArray.length && j < number; i++) {
+                    
+                    if (LinesArray[i].indexOf("-") != -1) {
+                        result = result === i ? result + 1 : i;
+                        j += 1;
+                    }
+                    
+                    const newSpace = LinesArray[i].match(/  /g)?.length || 0;
+                    if (newSpace < space) {
+                        control = true;
+                        break;
+                    }
+
+                }
+            }
+
+            if (control === true) {
+                result = -1;
+                break;
+            }
+
+            index += 1;
+        }
+
+        return result;
+    }
+
     const getStringNumber = (LinesArray: Array<string>, path: string): number => {
         let result = -1;
 
@@ -41,10 +94,11 @@
         let index = 0;
         for (let key of tree) {
             let control = false;
-
-            const space = LinesArray[result === -1 ? 0 : result].match(/  /g)?.length || 0;
+            
+            let space = LinesArray[result === -1 ? 0 : result].match(/  /g)?.length || 0;
             if (isNaN(+key) === true || tree[index - 1] === "responses") {
                 for (let i = result === -1 ? 0 : result; i < LinesArray.length; i++) {
+
                     if (LinesArray[i].indexOf(key + ":") !== -1) {
                         result = i;
                         break;
@@ -55,6 +109,7 @@
                         control = true;
                         break;
                     }
+
                 }
             } else {
                 const number = +key + 1;
@@ -70,6 +125,7 @@
                         control = true;
                         break;
                     }
+
                 }
             }
 
@@ -91,7 +147,7 @@
         for (let a of path.split(".")) {
             result += result.length === 0 ? a : `.${ a }`;
 
-            const stringNumberTest = getStringNumber(LinesArray, result);
+            const stringNumberTest = isPathExist(LinesArray, result);
             if (stringNumberTest === -1) break;
 
             if (stringNumber === stringNumberTest) {
@@ -136,13 +192,14 @@
                 let nextElemIndex = data.delete.findIndex(item => item.path.indexOf(firstNonExistPath) !== -1);
                 let nextElemPath = data.delete[nextElemIndex].path;
 
+                
                 while (nextElemIndex !== -1) {
                     data.delete.splice(nextElemIndex, 1);
-
+                    
                     nextElemIndex = data.delete.findIndex(item => item.path.indexOf(firstNonExistPath) !== -1);
                     if (nextElemIndex !== -1) nextElemPath = data.delete[nextElemIndex].path;
                 }
-
+                
                 const mFileMarkerStart = getStringNumber(mLinesArray, firstNonExistPath);
                 const mFileMarkerEnd = getStringNumber(mLinesArray, nextElemPath);
                 mMarkers.push(mEditor.getSession().addMarker(new ace.Range(mFileMarkerStart, 0, mFileMarkerEnd, 144), "ace-deleted-highlight", "fullLine", true));

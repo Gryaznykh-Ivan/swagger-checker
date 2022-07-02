@@ -1,5 +1,4 @@
 import svelte from "rollup-plugin-svelte";
-import replace from '@rollup/plugin-replace';
 import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 import { terser } from "rollup-plugin-terser";
@@ -31,7 +30,10 @@ export default fs
           css: (css) => {
             css.write(name + ".css");
           },
-          preprocess: sveltePreprocess(),
+          preprocess: sveltePreprocess({
+            postcss: true,
+            scss: { includePaths: ['src', 'node_modules'] },
+          }),
         }),
         commonjs(),
         resolve({

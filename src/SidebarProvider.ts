@@ -4,13 +4,13 @@ import { getNonce } from "./getNonce";
 
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
-    _view?: vscode.WebviewView;
-    _doc?: vscode.TextDocument;
+    public static _view?: vscode.WebviewView;
+    public static _doc?: vscode.TextDocument;
 
     constructor(private readonly _extensionUri: vscode.Uri) { }
 
     public resolveWebviewView(webviewView: vscode.WebviewView) {
-        this._view = webviewView;
+        SidebarProvider._view = webviewView;
 
         webviewView.webview.options = {
             enableScripts: true,
@@ -44,7 +44,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     }
 
     public revive(panel: vscode.WebviewView) {
-        this._view = panel;
+        SidebarProvider._view = panel;
     }
 
     private _getHtmlForWebview(webview: vscode.Webview) {
@@ -69,17 +69,16 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 			<html lang="en">
 			<head>
 				<meta charset="UTF-8">
-                <meta http-equiv="Content-Security-Policy" content="img-src https: data:; style-src 'unsafe-inline' ${webview.cspSource
-            }; script-src 'nonce-${nonce}';">
+                <meta http-equiv="Content-Security-Policy" content="img-src https: data:; style-src 'unsafe-inline' ${webview.cspSource}; script-src 'nonce-${nonce}';">
 				<meta name="viewport" content="width=device-width, initial-scale=1.0">
 				<link href="${styleResetUri}" rel="stylesheet">
 				<link href="${styleVSCodeUri}" rel="stylesheet">
-        <link href="${styleMainUri}" rel="stylesheet">
-        <script nonce="${nonce}">
-        const tsvscode = acquireVsCodeApi();
-      </script>
-			</head>
-      <body>
+                <link href="${styleMainUri}" rel="stylesheet">
+                <script nonce="${nonce}">
+                    const tsvscode = acquireVsCodeApi();
+                </script>
+            </head>
+            <body>
 				<script nonce="${nonce}" src="${scriptUri}"></script>
 			</body>
 			</html>`;

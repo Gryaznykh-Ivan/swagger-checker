@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { CodePanel } from './CodePanel';
-import { SidebarProvider } from './SidebarProvider';
+import { CodePanel } from './codepanel';
+import { SidebarProvider } from './sidebarprovider';
 
 export function activate(ctx: vscode.ExtensionContext) {
 
@@ -11,7 +11,7 @@ export function activate(ctx: vscode.ExtensionContext) {
 
 	ctx.subscriptions.push(
 		vscode.commands.registerCommand("swagger-checker.openCodePanel", () => {
-			CodePanel.createOrShow(ctx.extensionUri);
+			CodePanel.createOrShow(ctx.extensionUri, null);
 		})
 	);
 

@@ -1,4 +1,4 @@
-import App from "../components/CodePanel.svelte";
+import App from "../components/codepanel.svelte";
 
 const app = new App({
   target: document.body,

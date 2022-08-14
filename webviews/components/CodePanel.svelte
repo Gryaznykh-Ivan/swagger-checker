@@ -237,6 +237,10 @@
         window.addEventListener("message", async (event) => {
             const message = event.data;
             switch (message.type) {
+                case "init":
+                    mCode = message.value.mFileCode;
+                    sCode = message.value.sFileCode;
+                    break;
                 case "draw":
                     onDraw(message.value);
                     break;

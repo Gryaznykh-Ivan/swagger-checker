@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
-import { CodePanel } from "./CodePanel";
-import { getNonce } from "./getNonce";
+import { CodePanel } from "./codepanel";
+import { getNonce } from "./getnonce";
 
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
@@ -22,8 +22,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         webviewView.webview.onDidReceiveMessage(async (data) => {
             switch (data.type) {
                 case "onOpenCodePanel":
-                    CodePanel.createOrShow(this._extensionUri);
-
+                    CodePanel.createOrShow(this._extensionUri, data.value);
                     break;
                 case "onInfo": {
                     if (!data.value) {

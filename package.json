@@ -95,6 +95,8 @@
 		"webpack-cli": "^4.2.0"
 	},
 	"dependencies": {
+		"axios": "^0.27.2",
+		"fs": "^0.0.1-security",
 		"polka": "^0.5.2"
 	}
 }

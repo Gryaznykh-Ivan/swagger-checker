@@ -1,9 +1,11 @@
 import * as vscode from "vscode";
 import jsYaml from "js-yaml"
 import { jsonDeepDiffList } from 'json-deep-diff-list';
-import { getNonce } from "./getNonce";
-import { SidebarProvider } from "./SidebarProvider";
+import { getNonce } from "./getnonce";
+import { SidebarProvider } from "./sidebarprovider";
 import { DiffJson } from "../types"
+import fs from "fs"
+import axios from "axios"
 
 export class CodePanel {
     public static currentPanel: CodePanel | undefined;
@@ -14,7 +16,7 @@ export class CodePanel {
     private readonly _extensionUri: vscode.Uri;
     private _disposables: vscode.Disposable[] = [];
 
-    public static createOrShow(extensionUri: vscode.Uri) {
+    public static async createOrShow(extensionUri: vscode.Uri, paths: any) {
         const column = vscode.window.activeTextEditor
             ? vscode.window.activeTextEditor.viewColumn
             : undefined;
@@ -23,25 +25,49 @@ export class CodePanel {
         if (CodePanel.currentPanel) {
             CodePanel.currentPanel._panel.reveal(column);
             CodePanel.currentPanel._update();
-            return;
+        } else {
+            // Otherwise, create a new panel.
+            const panel = vscode.window.createWebviewPanel(
+                CodePanel.viewType,
+                "Swagger-checker",
+                column || vscode.ViewColumn.One,
+                {
+                    enableScripts: true,
+    
+                    localResourceRoots: [
+                        vscode.Uri.joinPath(extensionUri, "media"),
+                        vscode.Uri.joinPath(extensionUri, "out/compiled"),
+                    ],
+                }
+            );
+
+            CodePanel.currentPanel = new CodePanel(panel, extensionUri);
         }
 
-        // Otherwise, create a new panel.
-        const panel = vscode.window.createWebviewPanel(
-            CodePanel.viewType,
-            "Swagger-checker",
-            column || vscode.ViewColumn.One,
-            {
-                enableScripts: true,
 
-                localResourceRoots: [
-                    vscode.Uri.joinPath(extensionUri, "media"),
-                    vscode.Uri.joinPath(extensionUri, "out/compiled"),
-                ],
+        let mFileCode = "";
+        let sFileCode = "";
+
+        if (paths.mFilePath || paths.sFilePath) {
+            if (paths.mFilePath.indexOf("http") !== -1) {
+                const result = await axios.get(paths.mFilePath); 
+                mFileCode = result.data;
+            } else if (fs.existsSync(paths.mFilePath) === true) {
+                const result = fs.readFileSync(paths.mFilePath).toString();
+                mFileCode = result;
             }
-        );
 
-        CodePanel.currentPanel = new CodePanel(panel, extensionUri);
+            if (paths.sFilePath.indexOf("http") !== -1) {
+                const result = await axios.get(paths.sFilePath); 
+                sFileCode = result.data;
+            } else if (fs.existsSync(paths.sFilePath) === true) {
+                const result = fs.readFileSync(paths.sFilePath).toString();
+                sFileCode = result;
+            }
+
+            CodePanel.currentPanel._panel.webview.postMessage({ type: "init", value: { mFileCode, sFileCode }});
+            //https://petstore.swagger.io/v2/swagger.yaml
+        }
     }
 
     public static kill() {
